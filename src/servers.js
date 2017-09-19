@@ -70,30 +70,20 @@ export async function removeById(id) {
 }
 
 // ensure all secret fields are encrypted
-function encryptSecrects(server, cryptoSecret, oldSever) {
+function encryptSecrects(server = {}, cryptoSecret, oldSever = {}) {
   /* eslint no-param-reassign:0 */
   if (server.password) {
     const isPassDiff = (
-      oldSever &&
+      oldSever.password &&
+      oldSever.password !== server.password &&
       server.password !== crypto.decrypt(oldSever.password, cryptoSecret)
     );
 
-    if (!oldSever || isPassDiff) {
+    if (!oldSever.password || isPassDiff) {
       server.password = crypto.encrypt(server.password, cryptoSecret);
     }
   }
-
-  if (server.ssh && server.ssh.password) {
-    const isPassDiff = (
-      oldSever &&
-      server.ssh.password !== crypto.decrypt(oldSever.ssh.password, cryptoSecret)
-    );
-
-    if (!oldSever || isPassDiff) {
-      server.ssh.password = crypto.encrypt(server.ssh.password, cryptoSecret);
-    }
-  }
-
+  
   server.encrypted = true;
 }
 

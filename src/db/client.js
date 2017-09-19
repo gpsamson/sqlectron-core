@@ -16,6 +16,7 @@ export function createConnection(server, database) {
    * Database public API
    */
   return {
+    getProducts: getProducts.bind(null, server, database),
     connect: connect.bind(null, server, database),
     disconnect: disconnect.bind(null, server, database),
     listTables: listTables.bind(null, server, database),
@@ -39,9 +40,27 @@ export function createConnection(server, database) {
     getViewCreateScript: getViewCreateScript.bind(null, server, database),
     getRoutineCreateScript: getRoutineCreateScript.bind(null, server, database),
     truncateAllTables: truncateAllTables.bind(null, server, database),
+    listEvents: listEvents.bind(null, server, database),
+    listProperties: listProperties.bind(null, server, database)
   };
 }
 
+function listProperties(server, database, productId) {
+  console.log(productId)
+  checkIsConnected(server, database);
+  return database.connection.listProperties(productId);
+}
+
+function listEvents(server, database, productId) {
+  checkIsConnected(server, database);
+  return database.connection.listEvents(productId);
+}
+
+function getProducts(server, database) {
+  checkIsConnected(server, database);
+  console.log(database.connection.products);
+  return database.connection.products;
+}
 
 async function connect(server, database) {
   /* eslint no-param-reassign: 0 */
@@ -169,9 +188,9 @@ function query(server, database, queryText) {
   return database.connection.query(queryText);
 }
 
-function executeQuery(server, database, queryText) {
+function executeQuery(server, database, queryText, productId, events, properties) {
   checkIsConnected(server, database);
-  return database.connection.executeQuery(queryText);
+  return database.connection.executeQuery(queryText, productId, events, properties);
 }
 
 
