@@ -64,7 +64,7 @@ export async function listEvents(product, token) {
   // Add the index to the names.
   return data
     .filter(d => d.visible)
-    .map(d => ({ ...d, name: `${d.name} (${d.index})` }));
+    .map(d => ({ ...d, ogName: d.name, name: `${d.name} (${d.index})` }));
 }
 
 export async function listProperties(product, token) {
@@ -83,7 +83,7 @@ export async function listProperties(product, token) {
   // Add the index to the names.
   return data
     .filter(d => d.visible)
-    .map(d => ({ ...d, name: `${d.name} (${d.index})` }))
+    .map(d => ({ ...d, ogName: d.name, name: `${d.name} (${d.index})` }))
 }
 
 export function disconnect() {
@@ -397,17 +397,28 @@ function parseRowQueryResult(data, command, events, properties) {
           const propMod = k
           const propModValue = JSON.parse(v[k])
           const propIndex = parseInt(Object.keys(propModValue)[0])
-          const propName = properties.find(p => p.index === propIndex).name
+          let prop = properties.find(p => p.index === propIndex)
+          console.log(prop)
+          if (!prop) {
+            // Weird edge case
+            prop = {
+              name: propMod,
+              index: propIndex
+            }
+          }
+          console.log(prop)
 
           // Set the internal index as the value.
-          data[i][propName] = propModValue[propIndex]
+          data[i][prop.name] = propModValue[propIndex]
 
           // Delete the "prop_mod" stringified value.
-          delete data[i][propMod]
+          if (prop.name !== propMod) {
+            delete data[i][propMod]
+          }
           
           // Push the internal index as a field.
-          if (!a.includes(propName)) {
-            a.push(propName)
+          if (!a.includes(prop.name)) {
+            a.push(prop.name)
           }
         } else {
           // Push the property name
@@ -422,7 +433,13 @@ function parseRowQueryResult(data, command, events, properties) {
   // Map the event indices to the display name.
   data = data.map(record => {
     if (record.event) {
-      const event = events.find(e => e.index === record.event)
+      let event = events.find(e => e.index === record.event)
+      if (!event) {
+        event = {
+          name: '',
+          index: record.event
+        }
+      }
       return { ...record, event: event.name }
     }
 
